@@ -1,0 +1,135 @@
+name: uix-backend
+
+services:
+  backend:
+    container_name: uix-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      APP_PORT: ${APP_PORT:-4000}
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING}
+      WATCHPACK_POLLING: ${WATCHPACK_POLLING}
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+      MONGO_USERNAME: ${MONGO_USERNAME}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_AUTH_SOURCE: ${MONGO_AUTH_SOURCE}
+      MONGO_URI: ${MONGO_URI}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-change_me_redis}@redis:${REDIS_PORT_CONTAINER:-6379}
+      LLM_DEFAULT_PROVIDER: ${LLM_DEFAULT_PROVIDER}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      OLLAMA_OPENAI_BASE_URL: ${OLLAMA_OPENAI_BASE_URL}
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      REQUEST_TIMEOUT_MS: ${REQUEST_TIMEOUT_MS}
+      SSE_ENABLED: ${SSE_ENABLED}
+      SSE_KEEPALIVE_MS: ${SSE_KEEPALIVE_MS}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+    command: npm run dev
+    ports:
+      - "${APP_PORT:-4000}:${APP_PORT:-4000}"
+    volumes:
+      - ./:/app
+      - uix-backend-node-modules:/app/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - uix-shared
+
+  mongodb:
+    container_name: uix-mongodb
+    image: mongo:7
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-uix_user}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-uix_password}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-uix_db}
+    ports:
+      - "${MONGO_PORT:-27017}:${MONGO_PORT:-27017}"
+    volumes:
+      - uix-mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet \"mongodb://${MONGO_USERNAME:-uix_user}:${MONGO_PASSWORD:-uix_password}@localhost:27017/${MONGO_DATABASE:-uix_db}?authSource=admin\" --eval \"db.adminCommand('ping').ok\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - uix-shared
+
+  redis:
+    container_name: uix-redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-change_me_redis}"]
+    env_file:
+      - .env
+    ports:
+      - "${REDIS_PORT:-6379}:${REDIS_PORT_CONTAINER:-6379}"
+    volumes:
+      - uix-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-change_me_redis}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - uix-shared
+
+  mongo-express:
+    container_name: uix-mongo-express
+    image: mongo-express:1.0.2
+    restart: unless-stopped
+    profiles:
+      - tools
+    env_file:
+      - .env
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USERNAME:-uix_user}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD:-uix_password}
+      ME_CONFIG_MONGODB_SERVER: ${MONGO_HOST:-mongodb}
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-change_me}
+    ports:
+      - "${MONGO_EXPRESS_PORT:-8081}:8081"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - uix-shared
+
+  mailpit:
+    container_name: uix-mailpit
+    image: axllent/mailpit:v1.20
+    restart: unless-stopped
+    profiles:
+      - tools
+    ports:
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+    networks:
+      - uix-shared
+
+volumes:
+  uix-mongodb-data:
+  uix-redis-data:
+  uix-backend-node-modules:
+
+networks:
+  uix-shared:
+    name: uix-shared
+    external: true
