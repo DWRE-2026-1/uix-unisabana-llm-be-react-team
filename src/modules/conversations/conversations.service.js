@@ -1,9 +1,35 @@
-import { notImplemented } from "../../utils/not-implemented.js";
+import { conversationsRepository } from "./conversations.repository.js";
 
 export const conversationsService = {
-  create: async (_payload) => notImplemented("conversationsService", "create(payload)"),
-  listByUser: async (_userId) => notImplemented("conversationsService", "listByUser(userId)"),
-  getById: async (_id) => notImplemented("conversationsService", "getById(id)"),
-  rename: async (_id, _title) => notImplemented("conversationsService", "rename(id, title)"),
-  remove: async (_id) => notImplemented("conversationsService", "remove(id)")
+  async create({ title, userId, modelId }) {
+    return conversationsRepository.create({ title, user: userId, model: modelId || null });
+  },
+
+  async listByUser(userId) {
+    return conversationsRepository.listByUser(userId);
+  },
+
+  async getById(id) {
+    const conversation = await conversationsRepository.findById(id);
+    if (!conversation) {
+      throw Object.assign(new Error("Conversation not found"), { statusCode: 404 });
+    }
+    return conversation;
+  },
+
+  async rename(id, title) {
+    const conversation = await conversationsRepository.updateById(id, { title });
+    if (!conversation) {
+      throw Object.assign(new Error("Conversation not found"), { statusCode: 404 });
+    }
+    return conversation;
+  },
+
+  async remove(id) {
+    const conversation = await conversationsRepository.deleteById(id);
+    if (!conversation) {
+      throw Object.assign(new Error("Conversation not found"), { statusCode: 404 });
+    }
+    return conversation;
+  }
 };
