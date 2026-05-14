@@ -7,5 +7,6 @@ import { promptSchema } from "./prompts.validation.js";
 const router = Router();
 
 router.post("/", validate(promptSchema), asyncHandler(promptsController.generate));
+router.post("/stream", validate(promptSchema), asyncHandler(promptsController.stream));
 
 export default router;
