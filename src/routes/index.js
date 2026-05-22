@@ -7,7 +7,7 @@ import conversationsRoutes from "../modules/conversations/conversations.routes.j
 import messagesRoutes from "../modules/messages/messages.routes.js";
 import modelsRoutes from "../modules/models/models.routes.js";
 import healthRoutes from "../modules/health/health.routes.js";
-
+import promptsRoutes from "../modules/prompts/prompts.routes.js";
 const router = Router();
 
 router.get("/", (_req, res) => {
@@ -22,5 +22,6 @@ router.use("/chat", chatRoutes);
 router.use("/conversations", conversationsRoutes);
 router.use("/messages", messagesRoutes);
 router.use("/models", modelsRoutes);
+router.use("/prompts", promptsRoutes);
 
 export default router;
