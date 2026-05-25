@@ -1,19 +1,32 @@
-import { scaffoldResponse } from "../../utils/scaffold-response.js";
+import { apiResponse } from "../../utils/api-response.js";
+import { conversationsService } from "./conversations.service.js";
 
 export const conversationsController = {
-  async create(_req, res) {
-    return scaffoldResponse(res, "conversations", "create");
+  async create(req, res) {
+    const conversation = await conversationsService.create({
+      ...req.body,
+      userId: req.user.id
+    });
+    return apiResponse(res, { status: 201, message: "Conversation created", data: conversation });
   },
-  async list(_req, res) {
-    return scaffoldResponse(res, "conversations", "list");
+
+  async list(req, res) {
+    const conversations = await conversationsService.listByUser(req.user.id);
+    return apiResponse(res, { status: 200, message: "OK", data: conversations });
   },
-  async getById(_req, res) {
-    return scaffoldResponse(res, "conversations", "get_by_id");
+
+  async getById(req, res) {
+    const conversation = await conversationsService.getById(req.params.id);
+    return apiResponse(res, { status: 200, message: "OK", data: conversation });
   },
-  async rename(_req, res) {
-    return scaffoldResponse(res, "conversations", "rename");
+
+  async rename(req, res) {
+    const conversation = await conversationsService.rename(req.params.id, req.body.title);
+    return apiResponse(res, { status: 200, message: "Conversation renamed", data: conversation });
   },
-  async remove(_req, res) {
-    return scaffoldResponse(res, "conversations", "remove");
+
+  async remove(req, res) {
+    await conversationsService.remove(req.params.id);
+    return apiResponse(res, { status: 200, message: "Conversation deleted", data: null });
   }
 };

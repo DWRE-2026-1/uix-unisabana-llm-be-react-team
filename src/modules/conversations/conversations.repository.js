@@ -1,19 +1,23 @@
-import { notImplemented } from "../../utils/not-implemented.js";
+import { Conversation } from "../../database/models/Conversation.js";
 
 export const conversationsRepository = {
-  async create(_payload) {
-    return notImplemented("conversationsRepository", "create(payload)");
+  async create(payload) {
+    return Conversation.create(payload);
   },
-  async listByUser(_userId) {
-    return notImplemented("conversationsRepository", "listByUser(userId)");
+
+  async listByUser(userId) {
+    return Conversation.find({ user: userId, deletedAt: null }).sort({ createdAt: -1 });
   },
-  async findById(_id) {
-    return notImplemented("conversationsRepository", "findById(id)");
+
+  async findById(id) {
+    return Conversation.findOne({ _id: id, deletedAt: null });
   },
-  async updateById(_id, _payload) {
-    return notImplemented("conversationsRepository", "updateById(id, payload)");
+
+  async updateById(id, payload) {
+    return Conversation.findByIdAndUpdate(id, payload, { new: true });
   },
-  async deleteById(_id) {
-    return notImplemented("conversationsRepository", "deleteById(id)");
+
+  async deleteById(id) {
+    return Conversation.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true });
   }
 };
