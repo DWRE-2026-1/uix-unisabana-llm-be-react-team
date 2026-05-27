@@ -3,7 +3,17 @@ export function notFoundMiddleware(_req, res, _next) {
 }
 
 export function errorMiddleware(error, _req, res, _next) {
-  res.status(error.statusCode || 500).json({
+  const statusCode = error.statusCode || 500;
+  const payload = {
     message: error.message || "Internal server error"
-  });
+  };
+
+  if (error.code) {
+    payload.code = error.code;
+  }
+  if (error.details) {
+    payload.details = error.details;
+  }
+
+  res.status(statusCode).json(payload);
 }

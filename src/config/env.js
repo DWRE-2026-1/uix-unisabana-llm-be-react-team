@@ -33,5 +33,12 @@ export const env = {
   OLLAMA_BASE_URL: process.env.OLLAMA_BASE_URL || "http://host.docker.internal:11434",
   OLLAMA_OPENAI_BASE_URL:
     process.env.OLLAMA_OPENAI_BASE_URL || "http://host.docker.internal:11434/v1",
-  OLLAMA_MODEL: process.env.OLLAMA_MODEL || "llama3.1"
+  OLLAMA_MODEL: process.env.OLLAMA_MODEL || "llama3.1",
+  OLLAMA_CONTEXT_WINDOW: Number(process.env.OLLAMA_CONTEXT_WINDOW || 8192),
+  OPENAI_CONTEXT_WINDOW: Number(process.env.OPENAI_CONTEXT_WINDOW || 128000),
+  REQUEST_TIMEOUT_MS: Number(process.env.REQUEST_TIMEOUT_MS || 60000),
+  LLM_MAX_RETRIES: Number(process.env.LLM_MAX_RETRIES || 2),
+  LLM_RETRY_DELAY_MS: Number(process.env.LLM_RETRY_DELAY_MS || 1000),
+  SSE_ENABLED: process.env.SSE_ENABLED === "true",
+  SSE_KEEPALIVE_MS: Number(process.env.SSE_KEEPALIVE_MS || 15000)
 };

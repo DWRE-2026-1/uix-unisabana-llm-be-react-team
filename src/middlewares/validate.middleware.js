@@ -8,7 +8,10 @@ export function validate(schema) {
     });
     if (!result.success) {
       const message = result.error.issues.map((issue) => issue.message).join(", ");
-      return next(new Error(message || "Validation error"));
+      const error = new Error(message || "Validation error");
+      error.statusCode = 400;
+      error.code = "validation_error";
+      return next(error);
     }
     return next();
   };
