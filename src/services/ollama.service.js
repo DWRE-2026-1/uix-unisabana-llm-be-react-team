@@ -1,43 +1,44 @@
 import { env } from "../config/env.js";
+import { fetchJsonWithRetry, fetchWithRetry } from "../utils/llm-http.js";
+import { LlmError } from "../utils/llm-error.js";
 
-export async function sendToOllama(messages = []) {
+const META = { provider: "ollama" };
+
+export async function complete({ model, messages }) {
   const payload = {
-    model: env.OLLAMA_MODEL,
+    model,
     messages,
     stream: false
   };
 
-  const response = await fetch(`${env.OLLAMA_OPENAI_BASE_URL}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
+  return fetchJsonWithRetry(
+    `${env.OLLAMA_OPENAI_BASE_URL}/chat/completions`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     },
-    body: JSON.stringify(payload)
-  });
-
-  return response.json();
+    { ...META, model }
+  );
 }
 
-export async function streamFromOllama(messages = [], onChunk) {
-  const response = await fetch(`${env.OLLAMA_BASE_URL}/api/chat`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
+export async function stream({ model, messages, onChunk }) {
+  const response = await fetchWithRetry(
+    `${env.OLLAMA_BASE_URL}/api/chat`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        messages,
+        stream: true
+      })
     },
-    body: JSON.stringify({
-      model: env.OLLAMA_MODEL,
-      messages,
-      stream: true
-    })
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Ollama stream failed (${response.status}): ${text}`);
-  }
+    { ...META, model }
+  );
 
   if (!response.body) {
-    throw new Error("Ollama stream body is empty");
+    throw new LlmError("Ollama stream body is empty", { statusCode: 502 });
   }
 
   const decoder = new TextDecoder();
@@ -51,14 +52,17 @@ export async function streamFromOllama(messages = [], onChunk) {
     for (const line of lines) {
       const trimmed = line.trim();
       if (!trimmed) continue;
+
       const parsed = JSON.parse(trimmed);
       const content = parsed?.message?.content || "";
       if (content) {
         onChunk(content);
       }
       if (parsed?.done) {
-        return;
+        return { model, usage: null };
       }
     }
   }
+
+  return { model, usage: null };
 }

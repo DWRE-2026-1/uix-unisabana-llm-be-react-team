@@ -1,10 +1,31 @@
-import { notImplemented } from "../../utils/not-implemented.js";
+import { llmService } from "../../services/llm.service.js";
 
 export const chatService = {
-  async createCompletion(_payload) {
-    return notImplemented("chatService", "createCompletion(payload)");
+  async createCompletion(payload) {
+    const result = await llmService.complete({
+      provider: payload.provider,
+      model: payload.model,
+      prompt: payload.prompt,
+      messages: payload.messages
+    });
+
+    return {
+      content: result.content,
+      provider: result.provider,
+      model: result.model,
+      usage: result.usage
+    };
   },
-  async streamCompletion(_payload, _onChunk) {
-    return notImplemented("chatService", "streamCompletion(payload, onChunk)");
+
+  async streamCompletion(payload, onChunk) {
+    return llmService.stream(
+      {
+        provider: payload.provider,
+        model: payload.model,
+        prompt: payload.prompt,
+        messages: payload.messages
+      },
+      onChunk
+    );
   }
 };
