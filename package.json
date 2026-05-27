@@ -8,7 +8,10 @@
     "dev": "node --watch src/server.js",
     "migrate": "node src/database/migrations/migrate.js",
     "seed": "node src/database/seeders/seed.js",
-    "db:reset": "node src/database/reset.js"
+    "db:reset": "node src/database/reset.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -21,5 +24,41 @@
     "morgan": "^1.10.0",
     "redis": "^4.6.15",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@jest/globals": "^30.4.1",
+    "babel-jest": "^30.4.1",
+    "jest": "^30.4.2",
+    "jest-mock-extended": "^4.0.1"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.js$": "babel-jest"
+    },
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "src/middlewares/**/*.js",
+      "src/modules/auth/**/*.js",
+      "src/modules/conversations/**/*.js",
+      "src/modules/prompts/prompts.service.js",
+      "src/utils/api-response.js",
+      "src/utils/async-handler.js",
+      "src/utils/normalize-id.js",
+      "src/utils/not-implemented.js",
+      "src/utils/scaffold-response.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 70,
+        "functions": 70,
+        "branches": 70
+      }
+    },
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ]
   }
 }
