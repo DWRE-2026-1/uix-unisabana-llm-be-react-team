@@ -649,6 +649,13 @@ Si obtienes `model not found`, descarga modelo en host:
 ollama pull llama3.1
 ```
 
+Configurar el .env del backend
+```bash
+OLLAMA_BASE_URL=http://host.docker.internal:11434
+OLLAMA_OPENAI_BASE_URL=http://host.docker.internal:11434/v1
+OLLAMA_MODEL=(modelo de ollama que descargaste)
+```
+
 ## 8) Usuario admin inicial
 
 - Email: `admin@example.com`
