@@ -1,10 +1,13 @@
-import { notImplemented } from "../../utils/not-implemented.js";
+import { Message } from "../../database/models/Message.js";
 
 export const messagesRepository = {
-  async create(_payload) {
-    return notImplemented("messagesRepository", "create(payload)");
+  async create(payload) {
+    const message = new Message(payload);
+    return message.save();
   },
-  async listByConversation(_conversationId) {
-    return notImplemented("messagesRepository", "listByConversation(conversationId)");
+
+  async listByConversation(conversationId) {
+    return Message.find({ conversation: conversationId, deletedAt: null })
+      .sort({ createdAt: 1 });
   }
 };

@@ -1,7 +1,15 @@
-import { notImplemented } from "../../utils/not-implemented.js";
+import { messagesRepository } from "./messages.repository.js";
 
 export const messagesService = {
-  create: async (_payload) => notImplemented("messagesService", "create(payload)"),
-  listByConversation: async (_conversationId) =>
-    notImplemented("messagesService", "listByConversation(conversationId)")
+  async create(payload) {
+    return messagesRepository.create({
+      conversation: payload.conversationId,
+      role: payload.role,
+      content: payload.content
+    });
+  },
+
+  async listByConversation(conversationId) {
+    return messagesRepository.listByConversation(conversationId);
+  }
 };
